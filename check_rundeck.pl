@@ -110,7 +110,7 @@ if(!$response->is_success) {
    $p->nagios_die("Could not retrieve jobs");
 }
 
-my $jobs = $xml->XMLin($response->content);
+my $jobs = $xml->XMLin($response->decoded_content);
 
 # Counter for job status
 my $jobs_succeeded = 0;
@@ -123,7 +123,7 @@ foreach my $job (keys %{ $jobs->{'job'} }) {
    my $id = $jobs->{job}{$job}{id};
    # Get the last execution of the specified job
    my $response = $ua->get("https://$host/api/$api_version/project/$project/executions?jobIdListFilter=$id\&max=1&authtoken=$api_token");
-   my $executions = $xml->XMLin($response->content);
+   my $executions = $xml->XMLin($response->decoded_content);
    if($response->is_success && $executions->{count} && $jobs->{job}{$job}{scheduleEnabled} eq "true") {
 
       if($executions->{execution}{status} eq "succeeded") {
