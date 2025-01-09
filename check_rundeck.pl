@@ -105,7 +105,10 @@ my $api_token = $p->opts->token;
 my $project = $p->opts->project;
 
 # Return all scheduled jobs in the specified project
-my $response = $ua->get("https://$host/api/$api_version/project/$project/jobs?scheduledFilter=true&authtoken=$api_token");
+my $request = HTTP::Request->new('GET' => "https://$host/api/$api_version/project/$project/jobs?scheduledFilter=true&authtoken=$api_token");
+$request->header( "Accept" => "application/xml" );
+my $response = $ua->request($request);
+
 if(!$response->is_success) {
    $p->nagios_die("Could not retrieve jobs");
 }
@@ -122,7 +125,10 @@ my @failed_jobs;
 foreach my $job (keys %{ $jobs->{'job'} }) {
    my $id = $jobs->{job}{$job}{id};
    # Get the last execution of the specified job
-   my $response = $ua->get("https://$host/api/$api_version/project/$project/executions?jobIdListFilter=$id\&max=1&authtoken=$api_token");
+   my $request = HTTP::Request->new('GET' => "https://$host/api/$api_version/project/$project/executions?jobIdListFilter=$id\&max=1&authtoken=$api_token");
+   $request->header( "Accept" => "application/xml" );
+   my $response = $ua->request($request);
+
    my $executions = $xml->XMLin($response->decoded_content);
    if($response->is_success && $executions->{count} && $jobs->{job}{$job}{scheduleEnabled} eq "true") {
 
@@ -157,5 +163,3 @@ if($jobs_failed) {
 } else {
    $p->nagios_exit(OK, $msg);
 }
-
-
